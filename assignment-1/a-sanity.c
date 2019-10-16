@@ -55,6 +55,7 @@ void swap(unsigned **vector, int pos_1, int pos_2) {
   vector[pos_2] = temp;
 }
 
+
 int partition(unsigned **vector, int pos_left, int pos_right) {
   int i, j;
   unsigned pivot_value;
@@ -78,6 +79,7 @@ int partition(unsigned **vector, int pos_left, int pos_right) {
     }
   }
 }
+
 
 void quicksort(unsigned **vector, int pos_left, int pos_right) {
   if (pos_left < pos_right) {
