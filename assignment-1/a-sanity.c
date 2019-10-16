@@ -90,9 +90,30 @@ void quicksort(unsigned **vector, int pos_left, int pos_right) {
 }
 
 
+unsigned* binary_search(unsigned **vector, unsigned target, int size) {
+  int start = 0, end = size - 1, mid = 0;
+
+  while (start <= end) {
+    mid = start + (end - start) / 2;
+
+    if (vector[mid][0] == target) {
+      return vector[mid];
+    }
+
+    if (target < vector[mid][0]) {
+      end = mid - 1;
+    } else {
+      start = mid + 1;
+    }
+  }
+
+  return 0;
+}
+
+
 int main() {
-  int i, length, valid_path = 1;
-  unsigned *ptr1 = 0, *ptr2 = 0, **dump = 0;
+  int i, length, valid_path = 1, end_loop = 0;
+  unsigned *ptr1 = 0, *ptr2 = 0, **dump = 0, *curr_ptr = 0, prev_ptr = 0;
 
   ptr1 = read_input();
   ptr2 = read_input();
@@ -101,9 +122,30 @@ int main() {
   // sort the dump by pointer address
   quicksort(dump, 0, length - 1);
 
-  //check if the path between pointer 1 and 2 is valid
+  //check if the path between pointer 1 and 2 is valid (in both directions)
+  curr_ptr = ptr1;
+  if (curr_ptr == 0 || curr_ptr[0] == 0) {
+    valid_path = 0;
+  } else {
+    prev_ptr = curr_ptr[1];
+  }
 
-  //check if the path between pointer 2 and 1 (inverse) is valid
+  while (valid_path && !end_loop) {
+    if (curr_ptr[2] == 0 || curr_ptr[1] != prev_ptr) {
+      valid_path = 0;
+    } else if (curr_ptr[2] == ptr2[0]) {
+      end_loop = 1;
+    } else {
+      prev_ptr = curr_ptr[0];
+
+      // do binary search
+      curr_ptr = binary_search(dump, curr_ptr[2], length);
+      if (curr_ptr == 0) {
+        valid_path = 0;
+      }
+    }
+  }
+
 
   // print if the path is sane
   if (valid_path) {
