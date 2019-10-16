@@ -49,6 +49,45 @@ unsigned** read_dump(int *length) {
 }
 
 
+void swap(unsigned **vector, int pos_1, int pos_2) {
+  unsigned *temp = vector[pos_1];
+  vector[pos_1] = vector[pos_2];
+  vector[pos_2] = temp;
+}
+
+int partition(unsigned **vector, int pos_left, int pos_right) {
+  int i, j;
+  unsigned pivot_value;
+
+  pivot_value = vector[pos_left][0];
+  i = pos_left;
+  j = pos_right;
+  while (1) {
+    while (i < pos_right && vector[i][0] < pivot_value) {
+      i++;
+    }
+    while (j > pos_left && vector[j][0] > pivot_value) {
+      j--;
+    }
+    if (i < j) {
+      swap(vector, i, j);
+      i++;
+      j--;
+    } else {
+      return j;
+    }
+  }
+}
+
+void quicksort(unsigned **vector, int pos_left, int pos_right) {
+  if (pos_left < pos_right) {
+    int pivot = partition(vector, pos_left, pos_right);
+    quicksort(vector, pos_left, pivot);
+    quicksort(vector, pivot + 1, pos_right);
+  }
+}
+
+
 int main() {
   int i, length, valid_path = 1;
   unsigned *ptr1 = 0, *ptr2 = 0, **dump = 0;
@@ -58,6 +97,7 @@ int main() {
   dump = read_dump(&length);
 
   // sort the dump by pointer address
+  quicksort(dump, 0, length - 1);
 
   //check if the path between pointer 1 and 2 is valid
 
