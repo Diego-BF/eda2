@@ -23,9 +23,9 @@ node read_input() {
     unsig_vec.address = strtol(hex_input[0], NULL, 16);
     unsig_vec.prev = strtol(hex_input[1], NULL, 16);
     unsig_vec.next = strtol(hex_input[2], NULL, 16);
-    unsig_vec.valid = 1;
-  } else {
     unsig_vec.valid = 0;
+  } else {
+    unsig_vec.address = -1;
   }
 
   return unsig_vec;
@@ -73,15 +73,14 @@ void quicksort(node *vector, int pos_left, int pos_right) {
 }
 
 
-node binary_search(node *vector, unsigned target, int size) {
+int binary_search(node *vector, unsigned target, int size) {
   int start = 0, end = size - 1, mid = 0;
-  node not_found;
 
   while (start <= end) {
     mid = start + (end - start) / 2;
 
     if (vector[mid].address == target) {
-      return vector[mid];
+      return mid;
     }
 
     if (target < vector[mid].address) {
@@ -91,41 +90,60 @@ node binary_search(node *vector, unsigned target, int size) {
     }
   }
 
-  not_found.valid = 0;
-  return not_found;
+  return -1;
 }
 
 
 int main() {
-  node ptr1, ptr2, dump[SIZE_DUMP], start, end, read_node;
-  int length = 0, i = 0;
+  node ptr1, ptr2, dump[SIZE_DUMP];
+  int length = 0, i = 0, end = -1, pos_node = -1;
   unsigned removed_nodes[SIZE_DUMP];
 
-  ptr1 = read_input();
-  ptr2 = read_input();
-
   dump[0] = read_input();
-  while (dump[length].valid && length < SIZE_DUMP) {
+  while (dump[length].address != -1 && length < SIZE_DUMP) {
     length++;
     dump[length] = read_input();
-    printf("dump: %u\n", dump[length].address);
   }
-  quicksort(dump, 0, length - 1);
+  ptr1 = dump[0];
+  ptr2 = dump[1];
+  quicksort(dump, 0, length);
 
-
-  start = binary_search(dump, ptr1.prev, length);
+  pos_node = binary_search(dump, ptr1.address, length);
   end = binary_search(dump, ptr2.next, length);
-  printf("end: %u\n", end.address);
-
-  read_node = ptr1;
-  while (read_node.next != end.address && i < 15) {
-    removed_nodes[i] = read_node.address;
-    printf("removed: %u\n", removed_nodes[i]);
+  while (pos_node != -1 && pos_node != end) {
+    removed_nodes[i] = dump[pos_node].address;
     i++;
-    read_node = binary_search(dump, read_node.next, length - 1);
-    printf("read node: %u\n", read_node.address);
+    pos_node = binary_search(dump, dump[pos_node].next, length);
   }
-  printf("size i = %d\n", i);
 
+  pos_node = binary_search(dump, ptr1.prev, length);
+  while (pos_node != -1) {
+    dump[pos_node].valid = 1;
+    if (dump[pos_node].prev) {
+      pos_node = binary_search(dump, dump[pos_node].prev, length);
+    } else {
+      pos_node = -1;
+    }
+  }
+
+  pos_node = binary_search(dump, ptr2.next, length);
+  while (pos_node != -1 && dump[pos_node].next) {
+    dump[pos_node].valid = 1;
+    if (dump[pos_node].next) {
+      pos_node = binary_search(dump, dump[pos_node].next, length);
+    } else {
+      pos_node = -1;
+    }
+  }
+
+  for (int w = 0; w < length; w++) {
+    if(dump[w].valid) {
+      printf("%x %x %x\n", dump[w].address, dump[w].prev, dump[w].next);
+    }
+  }
+  printf("\n");
+  for (int z = 0; z < i; z++) {
+    printf("%x\n", removed_nodes[z]);
+  }
   return 0;
 }
