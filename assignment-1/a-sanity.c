@@ -60,31 +60,45 @@ int partition(unsigned **vector, int pos_left, int pos_right) {
   int i, j;
   unsigned pivot_value;
 
-  pivot_value = vector[pos_left][0];
+  // pivot_value = vector[pos_left][0];
+  // i = pos_left;
+  // j = pos_right;
+  // while (1) {
+  //   while (i < pos_right && vector[i][0] < pivot_value) {
+  //     i++;
+  //   }
+  //   while (j > pos_left && vector[j][0] > pivot_value) {
+  //     j--;
+  //   }
+  //   if (i < j) {
+  //     swap(vector, i, j);
+  //     i++;
+  //     j--;
+  //   } else {
+  //     return j;
+  //   }
+  // }
+
+
+  pivot_value = vector[pos_right][0];
   i = pos_left;
-  j = pos_right;
-  while (1) {
-    while (i < pos_right && vector[i][0] < pivot_value) {
-      i++;
-    }
-    while (j > pos_left && vector[j][0] > pivot_value) {
-      j--;
-    }
-    if (i < j) {
-      swap(vector, i, j);
-      i++;
-      j--;
-    } else {
-      return j;
+  for (j = pos_left; j <= pos_right; j++) {
+    if (vector[j][0] < pivot_value) {
+      // if (i != j) {
+        swap(vector, i, j);
+        i++;
+      // }
     }
   }
+  swap(vector, i, pos_right);
+  return i;
 }
 
 
 void quicksort(unsigned **vector, int pos_left, int pos_right) {
   if (pos_left < pos_right) {
     int pivot = partition(vector, pos_left, pos_right);
-    quicksort(vector, pos_left, pivot);
+    quicksort(vector, pos_left, pivot - 1);
     quicksort(vector, pivot + 1, pos_right);
   }
 }
@@ -121,6 +135,12 @@ int main() {
 
   // sort the dump by pointer address
   quicksort(dump, 0, length - 1);
+
+  // printf("DBG dump:\n");
+  // for (i = 0; i < length; i++) {
+  //   printf("%u ", dump[i][0]);
+  // }
+  // printf("\n");
 
   //check if the path between pointer 1 and 2 is valid (in both directions)
   curr_ptr = ptr1;
