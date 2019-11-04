@@ -4,38 +4,44 @@
 #define SIZE_VECT 10000
 
 
-unsigned* read_input() {
+typedef struct node_Struct {
+  unsigned address;
+  unsigned prev;
+  unsigned next;
+  int valid;
+} node;
+
+
+node* read_input() {
   char hex_input[3][9];
-  int ret_scanf = 0, i;
-  unsigned *unsig_vec = 0;
+  int ret_scanf = 0;
+  node *unsig_vec = 0;
 
   ret_scanf = scanf("%8s %8s %8s", hex_input[0], hex_input[1], hex_input[2]);
   if (ret_scanf == 3) {
     // convert hexadecimal to unsigned
-    unsig_vec = malloc(3 * sizeof(unsigned));
-    for (i = 0; i < 3; i++) {
-      unsig_vec[i] = strtol(hex_input[i], NULL, 16);
-    }
+    unsig_vec = malloc(3 * sizeof(node));
+    unsig_vec->address = strtol(hex_input[0], NULL, 16);
+    unsig_vec->prev = strtol(hex_input[1], NULL, 16);
+    unsig_vec->next = strtol(hex_input[2], NULL, 16);
   }
-
   return unsig_vec;
 }
 
 
-unsigned** read_dump(int *length) {
+node** read_dump(int *length) {
   int i = 0;
-  unsigned **dump = 0, **temp_vect = 0;
+  node **dump = 0, **temp_vect = 0;
 
-  dump = malloc(SIZE_VECT * sizeof(unsigned*));
-
+  dump = malloc(SIZE_VECT * sizeof(node*));
   dump[0] = read_input();
+
   while (dump[*length]) {
     *length += 1;
-
     if (*length % SIZE_VECT == 0) {
       // increase the size of dump
       temp_vect = dump;
-      dump = malloc((*length + SIZE_VECT) * sizeof(unsigned*));
+      dump = malloc((*length + SIZE_VECT) * sizeof(node*));
 
       for (i = 0; i < *length; i++) {
         dump[i] = temp_vect[i];
@@ -44,50 +50,29 @@ unsigned** read_dump(int *length) {
     }
     dump[*length] = read_input();
   }
-
   return dump;
 }
 
 
-void swap(unsigned **vector, int pos_1, int pos_2) {
-  unsigned *temp = vector[pos_1];
+void swap(node **vector, int pos_1, int pos_2) {
+  node *temp = vector[pos_1];
   vector[pos_1] = vector[pos_2];
   vector[pos_2] = temp;
 }
 
 
-int partition(unsigned **vector, int pos_left, int pos_right) {
+int partition(node **vector, int pos_left, int pos_right) {
   int i, j;
   unsigned pivot_value;
 
-  // pivot_value = vector[pos_left][0];
-  // i = pos_left;
-  // j = pos_right;
-  // while (1) {
-  //   while (i < pos_right && vector[i][0] < pivot_value) {
-  //     i++;
-  //   }
-  //   while (j > pos_left && vector[j][0] > pivot_value) {
-  //     j--;
-  //   }
-  //   if (i < j) {
-  //     swap(vector, i, j);
-  //     i++;
-  //     j--;
-  //   } else {
-  //     return j;
-  //   }
-  // }
-
-
-  pivot_value = vector[pos_right][0];
+  pivot_value = vector[pos_right]->address;
   i = pos_left;
   for (j = pos_left; j <= pos_right; j++) {
-    if (vector[j][0] < pivot_value) {
-      // if (i != j) {
+    if (vector[j]->address < pivot_value) {
+      if (i != j) {
         swap(vector, i, j);
-        i++;
-      // }
+      }
+      i++;
     }
   }
   swap(vector, i, pos_right);
@@ -95,7 +80,7 @@ int partition(unsigned **vector, int pos_left, int pos_right) {
 }
 
 
-void quicksort(unsigned **vector, int pos_left, int pos_right) {
+void quicksort(node **vector, int pos_left, int pos_right) {
   if (pos_left < pos_right) {
     int pivot = partition(vector, pos_left, pos_right);
     quicksort(vector, pos_left, pivot - 1);
@@ -104,30 +89,30 @@ void quicksort(unsigned **vector, int pos_left, int pos_right) {
 }
 
 
-unsigned* binary_search(unsigned **vector, unsigned target, int size) {
-  int start = 0, end = size - 1, mid = 0;
+node* binary_search(node **vector, unsigned target, int size) {
+  int left = 0, right = size - 1, mid = 0;
 
-  while (start <= end) {
-    mid = start + (end - start) / 2;
+  while (left <= right) {
+    mid = (left + right) / 2;
 
-    if (vector[mid][0] == target) {
+    if (vector[mid]->address == target) {
       return vector[mid];
     }
 
-    if (target < vector[mid][0]) {
-      end = mid - 1;
+    if (vector[mid]->address > target) {
+      right = mid - 1;
     } else {
-      start = mid + 1;
+      left = mid + 1;
     }
   }
-
   return 0;
 }
 
 
 int main() {
-  int i, length, valid_path = 1, end_loop = 0;
-  unsigned *ptr1 = 0, *ptr2 = 0, **dump = 0, *curr_ptr = 0, prev_ptr = 0;
+  int length = 0, valid_path = 1, end_loop = 0;
+  unsigned prev_ptr = 0;
+  node *ptr1 = 0, *ptr2 = 0, **dump = 0, *curr_ptr = 0;
 
   ptr1 = read_input();
   ptr2 = read_input();
@@ -136,30 +121,23 @@ int main() {
   // sort the dump by pointer address
   quicksort(dump, 0, length - 1);
 
-  // printf("DBG dump:\n");
-  // for (i = 0; i < length; i++) {
-  //   printf("%u ", dump[i][0]);
-  // }
-  // printf("\n");
-
   //check if the path between pointer 1 and 2 is valid (in both directions)
   curr_ptr = ptr1;
-  if (curr_ptr == 0 || curr_ptr[0] == 0) {
+  if (curr_ptr == 0 || curr_ptr->address == 0) {
     valid_path = 0;
   } else {
-    prev_ptr = curr_ptr[1];
+    prev_ptr = curr_ptr->prev;
   }
 
   while (valid_path && !end_loop) {
-    if (curr_ptr[2] == 0 || curr_ptr[1] != prev_ptr) {
+    if (curr_ptr->next == 0 || curr_ptr->prev != prev_ptr) {
       valid_path = 0;
-    } else if (curr_ptr[2] == ptr2[0]) {
+    } else if (curr_ptr->next == ptr2->address) {
       end_loop = 1;
     } else {
-      prev_ptr = curr_ptr[0];
-
+      prev_ptr = curr_ptr->address;
       // do binary search
-      curr_ptr = binary_search(dump, curr_ptr[2], length);
+      curr_ptr = binary_search(dump, curr_ptr->next, length);
       if (curr_ptr == 0) {
         valid_path = 0;
       }
@@ -177,7 +155,7 @@ int main() {
   // free alocated memory
   free(ptr1);
   free(ptr2);
-  for (i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++) {
     free(dump[i]);
   }
   free(dump);
